@@ -31,8 +31,8 @@ class Webbug(object):
             except FileNotFoundError:
                 print(f"删除失败,{self.my_log},{self.url_data_csv}文件不存在")
             print(">>>>>>>>>>>>>>>>>>下载路径已存在<<<<<<<<<<<<<<<<<")
-        logging.config.fileConfig('E:\工作\python\代码库\logging.conf',defaults={'logfile': self.debuglog_path})
-        socks.set_default_proxy(socks.SOCKS5, "192.168.31.205", 65533)
+        logging.config.fileConfig('F:\work\python\代码库\logconf\logging.conf',defaults={'logfile': self.debuglog_path})
+        socks.set_default_proxy(socks.SOCKS5, "192.168.31.160", 65533)
         socket.socket = socks.socksocket
     #get爬取网页    
     def url_get(self,url): 
@@ -181,7 +181,10 @@ class Webbug(object):
         logger.info(f"分析链接列表")
         pages = [i for i in range(1, self.page + 1)]
         for i in pages:
-            url = f"https://hanime1.me/search?query={self.video_query}&type=&genre={self.video_type}&page={i}"
+            if self.video_query:
+                url = f"https://hanime1.me/search?genre={self.video_type}&page={i}"
+            else:
+                url = f"https://hanime1.me/search?query={self.video_query}&type=&genre={self.video_type}&page={i}"
             logger.info(str(url).encode('gbk', errors='replace').decode('gbk'))
             self.url_list.append(url)
         end = timeit.default_timer()
@@ -223,11 +226,13 @@ class Webbug(object):
         logger.info(f"运行时间: {int(end - start)} 秒")
 
 if __name__ == "__main__":
-    video_query = "黒愛"
+    video_query = ""
     video_type = "裏番"
-    page = 5
+    page = 2
     w = Webbug(video_query,video_type,page)
     w.pages_run()
+
+# f"https://hanime1.me/search?genre={self.video_type}&page={page}"
 
 #  ピンクパイナップル メリー・ジェーン Collaboration Works
     # url = f"https://hanime1.me/search?query={self.video_query}&type=&genre={self.video_type}&page={page}"
