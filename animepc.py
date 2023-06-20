@@ -7,13 +7,16 @@ import logging.config
 
 class Webbug(object):
     def __init__(self,video_query,video_type,page):
+        self.headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 Edg/112.0.1722.48"}
+        self.logconf_path = "logconf/logging.conf"
+        self.vpn = "192.168.31.160"
+        #---------------下面参数勿动-------------
         self.url_data = []
         self.url_list = []
         self.video_data = {}
         self.video_query = video_query
         self.video_type = video_type
         self.page = page
-        self.headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 Edg/112.0.1722.48"}
         self.download_path = f'E:\缓存\爬虫图片\{self.video_type}\{self.video_query}'
         self.debuglog_path = os.path.join(self.download_path,'log.txt').replace("\\","/")
         self.url_data_txt = os.path.join(self.download_path,'data.txt')
@@ -22,6 +25,7 @@ class Webbug(object):
         self.preprocess()
     #运行前预处理
     def preprocess(self):
+        #pre1:检查下载路径是否存在
         if not os.path.exists(self.download_path):
             os.makedirs(self.download_path)
         else:
@@ -31,9 +35,14 @@ class Webbug(object):
             except FileNotFoundError:
                 print(f"删除失败,{self.my_log},{self.url_data_csv}文件不存在")
             print(">>>>>>>>>>>>>>>>>>下载路径已存在<<<<<<<<<<<<<<<<<")
-        logging.config.fileConfig('F:\work\python\代码库\logconf\logging.conf',defaults={'logfile': self.debuglog_path})
-        socks.set_default_proxy(socks.SOCKS5, "192.168.31.160", 65533)
-        socket.socket = socks.socksocket
+        #pre2:初始化日志配置
+        logging.config.fileConfig(self.logconf_path,defaults={'logfile': self.debuglog_path})
+        #pre3:设置代理
+        if self.vpn:
+            socks.set_default_proxy(socks.SOCKS5, self.vpn, 65533)
+            socket.socket = socks.socksocket
+        else:    
+            print("没有设置VPN")
     #get爬取网页    
     def url_get(self,url): 
         logger = logging.getLogger("Url_get")
