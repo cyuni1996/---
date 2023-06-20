@@ -1,10 +1,7 @@
-import os,re,socket,time,requests,socks,timeit,tqdm,multiprocessing
-from lxml import etree, html
-from tqdm import tqdm
-import pandas as pd
+import os,re,time,timeit
 import logging
 import logging.config
-from web_crawler.web_bug import Webbug as Webbug
+from web_crawler.crawler_code import Webbug as Webbug
 
 class Animepc(Webbug):
     def __init__(self, video_query, video_type, page):
