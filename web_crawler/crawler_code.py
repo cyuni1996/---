@@ -10,10 +10,6 @@ class Webbug(object):
         self.logconf_path = logconf_path
         self.vpn = vpn
         self.datapath = datapath
-        #---------------下面参数勿动-------------
-        self.url_data = []
-        self.url_list = []
-        self.video_data = {}
         self.video_query = video_query
         self.video_type = video_type
         self.page = page
@@ -44,6 +40,7 @@ class Webbug(object):
             socket.socket = socks.socksocket
         else:    
             print("没有设置VPN")
+#-----下面是爬取网页的方法--------
     #get爬取网页    
     def url_get(self,url): 
         logger = logging.getLogger("Url_get")

@@ -10,7 +10,9 @@ class Animepc(Webbug):
         vpn = "192.168.31.50"
         datapath = "E:\缓存\爬虫图片"
         super().__init__(video_query, video_type, page, headers, logconf_path, vpn, datapath)
-  
+        self.video_data = {}
+        self.url_data = []
+        self.url_list = []
 #-------------------------------------------------以下代码针对网页修改-------------------------------------------------------------
     # 分析url数据
     def url_analyze(self,Data): 

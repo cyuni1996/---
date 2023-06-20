@@ -4,7 +4,7 @@ from lxml import etree, html
 from tqdm import tqdm
 import pandas as pd
 import datetime
-from web_crawler_multithreading import *
+
 
 def url_get(url): #get爬取网页 
     try: 
@@ -12,7 +12,7 @@ def url_get(url): #get爬取网页
         return data
     except requests.exceptions.RequestException as e: # 如果发生任何 requests 库中定义的异常，则执行以下代码块
         logging.error("%s 访问报错,请检查url和代理是否正确",e)
-        return "no_url_data"
+        return None
 
 def url_analyze(Data): #分析url数据
     glgz = re.compile(
@@ -76,7 +76,7 @@ def Download_examine(url_Data):
         
 def url_pages(pages):
     url = "https://ffjav.com/page/%s?s=%s"%(pages,shousuo)
-    if url_analyze(web.url_get(url)) != "no_url_data":
+    if url_analyze(url_get(url)) != "no_url_data":
         Download_examine(url_Data)
         print(f"第{pages}页爬取完成")
     else:
@@ -98,30 +98,19 @@ def run(number):
     Pool.join()
 
 
-
+shousuo = "八掛うみ"
+pages = re.findall(r'\d+',str(list(range(1,20))))
 url_Data = []
 video_Downloadinfo = []
 headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.0.0"} 
-# Download_path = f'E:\缓存\爬虫图片\{shousuo}'
-# scv_path = os.path.join(Download_path,"Data" + '.csv')
-# video_txt_info = None
-# socks.set_default_proxy(socks.SOCKS5, "192.168.31.50", 65533)
-# socket.socket = socks.socksocket    
+Download_path = f'E:\缓存\爬虫图片\{shousuo}'
+scv_path = os.path.join(Download_path,"Data" + '.csv')
+video_txt_info = None
+socks.set_default_proxy(socks.SOCKS5, "192.168.31.50", 65533)
+socket.socket = socks.socksocket    
 if  __name__=="__main__":
     start = timeit.default_timer()
-    logconf_path = "logconf/logging.conf"
-    vpn = "192.168.31.50"
-    datapath = "E:\缓存\爬虫图片"
-    shousuo = "八掛うみ"
-    pages = re.findall(r'\d+',str(list(range(1,20))))
-    download_path = f'{datapath}\{shousuo}'
-    debuglog_path = os.path.join(download_path,'log.txt').replace("\\","/")
-    url_data_txt = os.path.join(download_path,'data.txt')
-    url_data_csv = os.path.join(download_path,'data.csv')
-    my_log = os.path.join(download_path,'log.txt')
-    web.preprocess(download_path,my_log,url_data_csv,logconf_path,debuglog_path,vpn)
-    url_pages(pages)
-    # run(10)
+    run(10)
     end = timeit.default_timer()
     print(f"运行时间: {int(end - start)} 秒")
 
