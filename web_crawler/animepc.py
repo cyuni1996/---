@@ -1,4 +1,4 @@
-import os,re,time,timeit
+import os,re,time,timeit,multiprocessing
 from crawler_code import Webbug as Webbug
 
 class Animepc(Webbug):
@@ -88,22 +88,20 @@ class Animepc(Webbug):
             self.Download(self.video_data["video_url"],video_name)
         else:
             self.logger.error(f"未下载{str(video_name).encode('gbk', errors='replace').decode('gbk')}视频数据")
+
     # 获取url_list
-    def url_pages(self):
-        start = timeit.default_timer()
+    def url_page(self):
         self.logger.info(f"分析链接列表")
-        pages = [i for i in range(1, self.page + 1)]
-        for i in pages:
+        for i in self.page:
             if self.video_query:
                 url = f"https://hanime1.me/search?genre={self.video_type}&page={i}"
             else:
                 url = f"https://hanime1.me/search?query={self.video_query}&type=&genre={self.video_type}&page={i}"
             self.logger.info(str(url).encode('gbk', errors='replace').decode('gbk'))
             self.url_list.append(url)
-        end = timeit.default_timer()
-        self.logger.info(f"运行时间: {int(end - start)} 秒")
-    # 运行脚本
-    def run(self,url):
+        self.logger.info(f"列表分析完成")
+    # 单页爬取流程
+    def url_run(self,url):
         start = timeit.default_timer()
         self.logger.info(">>>>>>>>>>>>>>>>>>开始分析图片文件<<<<<<<<<<<<<<<<<")
         if self.url_analyze(self.url_get(url)) != "no_url_data":
@@ -120,30 +118,47 @@ class Animepc(Webbug):
                 self.Downloadvideo_examine(video_url,video_name)
             else:
                 self.logger.info('文件存在:'+str(video_name).encode('gbk', errors='replace').decode('gbk'))  
-
         end = timeit.default_timer()
         self.logger.info(f"运行时间: {int(end - start)} 秒")   
-    # 多页爬取直到爬取结束
+    # 多页爬取直到爬取结束     
     def pages_run(self):
         start = timeit.default_timer()
-        self.url_pages()
+        self.url_page()
         for i in self.url_list:
-            self.logger.info(f"页面{str(i).encode('gbk', errors='replace').decode('gbk')}爬取开始")
+            self.logger.info(f"{str(i).encode('gbk', errors='replace').decode('gbk')} 爬取开始")
             self.url_data.clear()
-            self.run(i)
-            self.logger.info(f"页面{str(i).encode('gbk', errors='replace').decode('gbk')}爬取完成")
+            self.url_run(i)
+            self.logger.info(f"{str(i).encode('gbk', errors='replace').decode('gbk')} 爬取完成")
         end = timeit.default_timer()
         self.logger.info(">>>>>>>>>>>>>>>>>>全部爬取完成<<<<<<<<<<<<<<<<<")
+        self.logger.info(f"运行时间: {int(end - start)} 秒")
+
+    def duoxianc(self,page):
+        url = f"https://hanime1.me/search?genre={self.video_type}&page={page}"
+        self.logger.info(f"{str(url).encode('gbk', errors='replace').decode('gbk')} 爬取开始")
+        self.url_run(url)
+        self.logger.info(f"{str(url).encode('gbk', errors='replace').decode('gbk')} 爬取完成")
+        time.sleep(2)
+
+    def run(self,thread):
+        start = timeit.default_timer()
+        Pool = multiprocessing.Pool(thread)
+        Pool.map(self.duoxianc,self.page)
+        Pool.close()
+        Pool.join()
+        self.logger.info(">>>>>>>>>>>>>>>>>>全部爬取完成<<<<<<<<<<<<<<<<<")
+        end = timeit.default_timer()
         self.logger.info(f"运行时间: {int(end - start)} 秒")
 
 if __name__ == "__main__":
     video_query = ""
     video_type = "裏番"
-    page = 2
+    page = 3
     datapath = "E:\缓存\爬虫图片"
     vpn = ""
     w = Animepc(video_query,video_type,page,vpn,datapath)
-    w.pages_run()
+    #w.pages_run()
+    w.run(5)
 
 # f"https://hanime1.me/search?genre={self.video_type}&page={page}"
 # url = f"https://hanime1.me/search?query={self.video_query}&type=&genre={self.video_type}&page={page}"

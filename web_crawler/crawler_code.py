@@ -1,4 +1,4 @@
-import os,socket,time,requests,socks,tqdm
+import os,socket,time,requests,socks,tqdm,re
 from tqdm import tqdm
 import pandas as pd
 import logging
@@ -12,7 +12,7 @@ class Webbug(object):
         self.datapath = datapath
         self.video_query = video_query
         self.video_type = video_type
-        self.page = page
+        self.page = re.findall(r'\d+',str(list(range(1,page+1))))
         self.download_path = f'{self.datapath}\{self.video_type}\{self.video_query}'
         self.debuglog_path = os.path.join(self.download_path,'log.txt')
         self.url_data_txt = os.path.join(self.download_path,'data.txt')
@@ -39,6 +39,8 @@ class Webbug(object):
             socket.socket = socks.socksocket
         else:    
             print("没有设置VPN")
+        #pre4:
+  
 #-----下面是爬取网页的方法--------
     #get爬取网页    
     def url_get(self,url): 
