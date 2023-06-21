@@ -19,6 +19,7 @@ class Webbug(object):
         self.url_data_csv = os.path.join(self.download_path,'data.csv')
         self.my_log = os.path.join(self.download_path,'log.txt')
         self.preprocess()
+        self.logger = logging.getLogger(__name__)
     #运行前预处理
     def preprocess(self):
         #pre1:检查下载路径是否存在
@@ -35,7 +36,7 @@ class Webbug(object):
         logging.config.fileConfig(self.logconf_path,defaults={'logfile': self.debuglog_path})
         #pre3:设置代理
         if self.vpn:
-            print(self.vpn)
+            print(f"已挂载VPN:{self.vpn}")
             socks.set_default_proxy(socks.SOCKS5, self.vpn, 65533)
             socket.socket = socks.socksocket
         else:    
@@ -43,12 +44,11 @@ class Webbug(object):
 #-----下面是爬取网页的方法--------
     #get爬取网页    
     def url_get(self,url): 
-        logger = logging.getLogger("Url_get")
         try: 
             data = requests.get(url,headers=self.headers,timeout=(10,15)).text
             return data
         except requests.exceptions.RequestException as e: # 如果发生任何 requests 库中定义的异常，则执行以下代码块
-            logger.error("%s \n访问报错,请检查url和代理是否正确",e)
+            self.logger.error("%s \n访问报错,请检查url和代理是否正确",e)
             return "no_url_data"
     # 保存分析数据
     def url_AnalyzeDatasave(self,path,Data):
@@ -69,7 +69,6 @@ class Webbug(object):
         return data
     # 下载
     def Download(self, download_url, download_name):
-        logger = logging.getLogger("Download")
         try:
             url = requests.get(download_url, headers=self.headers, stream=True, timeout=(10, 15)) # 使用stream参数，可以让你一边下载一边写入文件，这样可以节省内存空间，提高效率，避免因为文件过大而导致的内存溢出错误。
             file_size = int(url.headers.get('content-length', 0))                                 # 获取文件大小
@@ -81,15 +80,14 @@ class Webbug(object):
                     progress_bar.update(size)
                 progress_bar.close()                                                              # 关闭进度条
         except Exception as e:
-            logger.warning(f'{e} \n开始尝试使用下载方法2')
+            self.logger.warning(f'{e} \n开始尝试使用下载方法2')
             self.Download2(download_url, download_name)
         else:
-            logger.info('下载成功:'+str(download_name).encode('gbk', errors='replace').decode('gbk'))
+            self.logger.info('下载成功:'+str(download_name).encode('gbk', errors='replace').decode('gbk'))
         finally:                                                                                  # 语句结束后必须执行的清理操作
             time.sleep(0.1)    
     def Download2(self, download_url, download_name):
-        logger = logging.getLogger("Download2")
         try:
             os.system(f"you-get -o {download_name[:-4]} -O {download_name[:-4]} {download_url}")# 使用you-get命令行工具下载文件
         except Exception as e:
-            logger.error(f'下载错误{download_name}'+str(download_name).encode('gbk', errors='replace').decode('gbk')+': {e}')
+            self.logger.error(f'下载错误{download_name}'+str(download_name).encode('gbk', errors='replace').decode('gbk')+': {e}')
