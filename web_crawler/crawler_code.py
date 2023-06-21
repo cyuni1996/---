@@ -14,26 +14,24 @@ class Webbug(object):
         self.video_type = video_type
         self.page = page
         self.download_path = f'{self.datapath}\{self.video_type}\{self.video_query}'
-        self.debuglog_path = os.path.join(self.download_path,'log.txt').replace("\\","/")
+        self.debuglog_path = os.path.join(self.download_path,'log.txt')
         self.url_data_txt = os.path.join(self.download_path,'data.txt')
         self.url_data_csv = os.path.join(self.download_path,'data.csv')
-        self.my_log = os.path.join(self.download_path,'log.txt')
         self.preprocess()
-        self.logger = logging.getLogger(__name__)
     #运行前预处理
     def preprocess(self):
-        #pre1:检查下载路径是否存在
+        #pre1:检查日志路径是否存在
         if not os.path.exists(self.download_path):
             os.makedirs(self.download_path)
         else:
             try:
-                os.remove(self.my_log)
+                os.remove(self.debuglog_path)
                 os.remove(self.url_data_csv)
             except FileNotFoundError:
-                print(f"删除失败,{self.my_log},{self.url_data_csv}文件不存在")
-            print(">>>>>>>>>>>>>>>>>>下载路径已存在<<<<<<<<<<<<<<<<<")
-        #pre2:初始化日志配置
+                print(f"删除失败,{self.debuglog_path},{self.url_data_csv}文件不存在")
+        #pre2:加载日志程序
         logging.config.fileConfig(self.logconf_path,defaults={'logfile': self.debuglog_path})
+        self.logger = logging.getLogger(__name__)
         #pre3:设置代理
         if self.vpn:
             print(f"已挂载VPN:{self.vpn}")
@@ -84,7 +82,7 @@ class Webbug(object):
             self.Download2(download_url, download_name)
         else:
             self.logger.info('下载成功:'+str(download_name).encode('gbk', errors='replace').decode('gbk'))
-        finally:                                                                                  # 语句结束后必须执行的清理操作
+        finally:                                                                                  # 语句结束后必须执行的操作
             time.sleep(0.1)    
     def Download2(self, download_url, download_name):
         try:

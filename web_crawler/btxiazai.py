@@ -61,54 +61,7 @@ class btxiazai(Webbug):
                 self.Download(image_url,image_name)
             else:
                 self.logger.info('文件存在:'+str(image_name).encode('gbk', errors='replace').decode('gbk'))
-    # 获取url_list
-    def url_pages(self):
-        start = timeit.default_timer()
-        self.logger.info(f"分析链接列表")
-        pages = [i for i in range(1, self.page + 1)]
-        for i in pages:
-            url = f"https://hanime1.me/search?query={self.video_query}&type=&genre={self.video_type}&page={i}"
-            self.logger.info(url)
-            self.url_list.append(url)
-        end = timeit.default_timer()
-        self.logger.info(f"运行时间: {int(end - start)} 秒")
-    # 运行脚本
-    def run(self,url):
-        start = timeit.default_timer()
-        self.logger.info(">>>>>>>>>>>>>>>>>>开始分析图片文件<<<<<<<<<<<<<<<<<")
-        if self.url_analyze(self.url_get(url)) != "no_url_data":
-            self.Downloadimage_examine(self.url_data)
-        else:
-            self.logger.error("没有分析到url数据")
-        time.sleep(0.3)
-        self.logger.info(">>>>>>>>>>>>>>>>>>开始分析视频文件<<<<<<<<<<<<<<<<<")
-        for item in self.url_data:
-            video_url = (item['video_url'])
-            video_name = (item['video_name'])
-            if not os.path.isfile(video_name):
-                self.logger.info(f'下载链接:{video_url}')
-                self.Downloadvideo_examine(video_url,video_name)
-            else:
-                self.logger.info('文件存在:'+str(video_name).encode('gbk', errors='replace').decode('gbk'))  
-
-        end = timeit.default_timer()
-        self.logger.info(f"运行时间: {int(end - start)} 秒")   
-    # 多页爬取直到爬取结束
-    def pages_run(self):
-        start = timeit.default_timer()
-        self.url_pages()
-        for i in self.url_list:
-            self.logger.info(f"{i}")
-            self.url_data.clear()
-            self.run(i)
-            self.logger.info(f"{i}完成")
-        end = timeit.default_timer()
-        self.logger.info(">>>>>>>>>>>>>>>>>>全部爬取完成<<<<<<<<<<<<<<<<<")
-        self.logger.info(f"运行时间: {int(end - start)} 秒")
-
-    def save_urldata(self,data):
-        self.save_data(self.url_data_txt,self.url_get(data))
-
+                
     def run(self):
         start = timeit.default_timer()
         if self.video_query == "动漫":

@@ -6,7 +6,7 @@ class Animepc(Webbug):
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 Edg/112.0.1722.48"}
         logconf_path = "logconf/logging.conf"
         super().__init__(video_query, video_type, page, headers, logconf_path, vpn, datapath)
-        self.video_data = []
+        self.video_data = {}
         self.url_data = []
         self.url_list = []
 #-------------------------------------------------以下代码针对网页修改-------------------------------------------------------------
@@ -20,7 +20,7 @@ class Animepc(Webbug):
         jx = glgz.finditer(Data)  
         for i in jx:     
             filename = i.group("name").strip()  # 从 i 中提取文件名，去掉空格
-            print(filename)
+            self.logger.debug(filename)
             filename = re.sub(r"[\/\]\!\?\s・\xa0]", "", filename)     # 用正则表达式替换掉文件名中的特殊字符
             dic = {
                 "name":i.group("name"),
@@ -50,18 +50,14 @@ class Animepc(Webbug):
         glgz3 = re.compile(
             r'.*?<video style=.*?src="(?P<video_url>.*?)"' # 匹配链接
             )
-        jx = glgz.finditer(data) 
-        videodata = {i.group("sizi"): i.group("video_url") for i in jx}
-        time.sleep(3)
+        videodata = {i.group("sizi"): i.group("video_url") for i in glgz.finditer(data)}
+        time.sleep(1)
         if not videodata:
-            self.logger.warning("尝试数据分析2")
-            jx2 = glgz2.finditer(data) 
-            videodata = {"720": i.group("video_url") for i in jx2}
+            self.logger.warning("尝试数据分析2") 
+            videodata = {"720": i.group("video_url") for i in glgz2.finditer(data)}
         elif not videodata:
             self.logger.warning("尝试数据分析3")
-            jx3 = glgz3.finditer(data) 
-            videodata = {"720": i.group("video_url") for i in jx3}
-
+            videodata = {"720": i.group("video_url") for i in glgz3.finditer(data)}
         video_url = videodata.get('1080', videodata.get('720', videodata.get('480', videodata.get('320', None))))
         # 判断视频是否加密
         if video_url is not None:
