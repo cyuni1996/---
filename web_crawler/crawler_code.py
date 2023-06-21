@@ -8,6 +8,7 @@ class Webbug(object):
     def __init__(self,video_query,video_type,page,headers,logconf_path,vpn,datapath):
         self.headers = headers
         self.logconf_path = logconf_path
+        print(self.logconf_path)
         self.vpn = vpn
         self.datapath = datapath
         self.video_query = video_query

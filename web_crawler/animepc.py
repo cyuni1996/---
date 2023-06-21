@@ -2,7 +2,7 @@ import os,re,time,timeit,multiprocessing
 from crawler_code import Webbug as Webbug
 
 class Animepc(Webbug):
-    def __init__(self, video_query, video_type, page ,vpn ,datapath):
+    def __init__(self, video_query, video_type, page, vpn, datapath):
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 Edg/112.0.1722.48"}
         logconf_path = "logconf/logging.conf"
         super().__init__(video_query, video_type, page, headers, logconf_path, vpn, datapath)
@@ -88,7 +88,6 @@ class Animepc(Webbug):
             self.Download(self.video_data["video_url"],video_name)
         else:
             self.logger.error(f"未下载{str(video_name).encode('gbk', errors='replace').decode('gbk')}视频数据")
-
     # 获取url_list
     def url_page(self):
         self.logger.info(f"分析链接列表")
@@ -133,32 +132,14 @@ class Animepc(Webbug):
         self.logger.info(">>>>>>>>>>>>>>>>>>全部爬取完成<<<<<<<<<<<<<<<<<")
         self.logger.info(f"运行时间: {int(end - start)} 秒")
 
-    def duoxianc(self,page):
-        url = f"https://hanime1.me/search?genre={self.video_type}&page={page}"
-        self.logger.info(f"{str(url).encode('gbk', errors='replace').decode('gbk')} 爬取开始")
-        self.url_run(url)
-        self.logger.info(f"{str(url).encode('gbk', errors='replace').decode('gbk')} 爬取完成")
-        time.sleep(2)
-
-    def run(self,thread):
-        start = timeit.default_timer()
-        Pool = multiprocessing.Pool(thread)
-        Pool.map(self.duoxianc,self.page)
-        Pool.close()
-        Pool.join()
-        self.logger.info(">>>>>>>>>>>>>>>>>>全部爬取完成<<<<<<<<<<<<<<<<<")
-        end = timeit.default_timer()
-        self.logger.info(f"运行时间: {int(end - start)} 秒")
-
 if __name__ == "__main__":
     video_query = ""
     video_type = "裏番"
     page = 3
     datapath = "E:\缓存\爬虫图片"
-    vpn = ""
+    vpn = "192.168.31.50"
     w = Animepc(video_query,video_type,page,vpn,datapath)
-    #w.pages_run()
-    w.run(5)
+    w.pages_run()
 
 # f"https://hanime1.me/search?genre={self.video_type}&page={page}"
 # url = f"https://hanime1.me/search?query={self.video_query}&type=&genre={self.video_type}&page={page}"

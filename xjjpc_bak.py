@@ -1,10 +1,9 @@
 import json,multiprocessing,os,re,socket,time,requests,socks,timeit,tqdm,threading
-import logging # 导入 logging 库，用于记录日志
 from lxml import etree, html
 from tqdm import tqdm
 import pandas as pd
-import datetime
-
+import logging
+import logging.config
 
 def url_get(url): #get爬取网页 
     try: 
@@ -97,21 +96,22 @@ def run(number):
     Pool.close()
     Pool.join()
 
-
 shousuo = "八掛うみ"
 pages = re.findall(r'\d+',str(list(range(1,20))))
 url_Data = []
 video_Downloadinfo = []
+logconf_path = "logconf/logging.conf"
 headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.0.0"} 
 Download_path = f'E:\缓存\爬虫图片\{shousuo}'
 scv_path = os.path.join(Download_path,"Data" + '.csv')
+debuglog_path = os.path.join(Download_path,'log.txt')
 video_txt_info = None
 socks.set_default_proxy(socks.SOCKS5, "192.168.31.50", 65533)
 socket.socket = socks.socksocket    
+logging.config.fileConfig(logconf_path,defaults={'logfile': debuglog_path})
+logger = logging.getLogger(__name__)
 if  __name__=="__main__":
     start = timeit.default_timer()
     run(10)
     end = timeit.default_timer()
     print(f"运行时间: {int(end - start)} 秒")
-
-    
