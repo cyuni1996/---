@@ -26,8 +26,8 @@ def url_analyze(Data): #分析url数据
             "name":i.group("name"),
             "image_url":i.group("image"),
             "torrent_url":i.group("torrent"),
-            "image_name":os.path.join(Download_path, filename + '.jpg'),
-            "torrent_name":os.path.join(Download_path, filename + '.torrent')
+            "image_name":os.path.join(download_path, filename + '.jpg'),
+            "torrent_name":os.path.join(download_path, filename + '.torrent')
         }
         url_Data.append(dic)
     if url_Data == []:
@@ -40,10 +40,10 @@ def url_Datasave(Data):
     df = pd.DataFrame(Data)
     # 去除重复的行
     df = df.drop_duplicates()
-    if not os.path.exists(scv_path):
-        df.to_csv(scv_path, index=False)
+    if not os.path.exists(url_data_csv):
+        df.to_csv(url_data_csv, index=False)
     else:
-        df.to_csv(scv_path, index=False, mode="a")
+        df.to_csv(url_data_csv, index=False, mode="a")
     
 def Download(download_url,download_name): # 下载
     url=requests.get(download_url,headers=headers,timeout=(10,15))
@@ -83,11 +83,11 @@ def url_pages(pages):
     time.sleep(0.5)
     
 def run(number):
-    if not os.path.exists(Download_path):
-        os.makedirs(Download_path)
+    if not os.path.exists(download_path):
+        os.makedirs(download_path)
     else:
         try:
-            os.remove(scv_path)
+            os.remove(url_data_csv)
         except:
             print("scv删除失败,文件不存在")
         print(">>>>>>>>>>>>>>>>>>下载路径存在<<<<<<<<<<<<<<<<<")
@@ -96,22 +96,30 @@ def run(number):
     Pool.close()
     Pool.join()
 
-shousuo = "八掛うみ"
+shousuo = "初川みなみ"
 pages = re.findall(r'\d+',str(list(range(1,20))))
 url_Data = []
 video_Downloadinfo = []
 logconf_path = "logconf/logging.conf"
 headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.0.0"} 
-Download_path = f'E:\缓存\爬虫图片\{shousuo}'
-scv_path = os.path.join(Download_path,"Data" + '.csv')
-debuglog_path = os.path.join(Download_path,'log.txt')
+download_path = f'E:\缓存\爬虫图片\{shousuo}'
+url_data_csv = os.path.join(download_path,"Data" + '.csv')
+debuglog_path = os.path.join(download_path,'log.txt')
 video_txt_info = None
-socks.set_default_proxy(socks.SOCKS5, "192.168.31.50", 65533)
+socks.set_default_proxy(socks.SOCKS5, "192.168.31.160", 65533)
 socket.socket = socks.socksocket    
-logging.config.fileConfig(logconf_path,defaults={'logfile': debuglog_path})
 logger = logging.getLogger(__name__)
 if  __name__=="__main__":
     start = timeit.default_timer()
+    if not os.path.exists(download_path):
+        os.makedirs(download_path)
+    else:
+        try:
+            os.remove(debuglog_path)
+            os.remove(url_data_csv)
+        except FileNotFoundError:
+            print(f"删除失败,{debuglog_path},{url_data_csv}文件不存在")
+    logging.config.fileConfig(logconf_path,defaults={'logfile': debuglog_path})
     run(10)
     end = timeit.default_timer()
     print(f"运行时间: {int(end - start)} 秒")

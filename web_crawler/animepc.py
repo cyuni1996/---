@@ -1,9 +1,9 @@
-import os,re,time,timeit,multiprocessing
+import os,re,time,timeit
 from crawler_code import Webbug as Webbug
 
 class Animepc(Webbug):
     def __init__(self, video_query, video_type, page, vpn, datapath):
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 Edg/112.0.1722.48"}
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67"}
         logconf_path = "logconf/logging.conf"
         super().__init__(video_query, video_type, page, headers, logconf_path, vpn, datapath)
         self.video_data = {}
@@ -130,14 +130,14 @@ class Animepc(Webbug):
             self.logger.info(f"{str(i).encode('gbk', errors='replace').decode('gbk')} 爬取完成")
         end = timeit.default_timer()
         self.logger.info(">>>>>>>>>>>>>>>>>>全部爬取完成<<<<<<<<<<<<<<<<<")
-        self.logger.info(f"运行时间: {int(end - start)} 秒")
+        self.logger.info(f"总运行时间: {int(end - start)} 秒")
 
 if __name__ == "__main__":
     video_query = ""
     video_type = "裏番"
-    page = 3
+    page = 1
     datapath = "E:\缓存\爬虫图片"
-    vpn = "192.168.31.50"
+    vpn = "192.168.31.160"
     w = Animepc(video_query,video_type,page,vpn,datapath)
     w.pages_run()
 

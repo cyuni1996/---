@@ -70,6 +70,6 @@ if  __name__=="__main__":
     video_type = ""
     page = 5
     datapath = "E:\缓存\爬虫图片"
-    vpn = "192.168.31.50"
+    vpn = "192.168.31.160"
     w = xjjpc(video_query,video_type,page,vpn,datapath)
     w.run(3)

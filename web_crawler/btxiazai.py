@@ -69,7 +69,7 @@ class btxiazai(Webbug):
         if self.video_type == "日本":
             self.video_type = "-typeid1-0-typeid2-0-typeid3-0-typeid4-205082"
         # url = f"https://www.btbtt16.com/forum-index-fid-{self.video_query}{self.video_type}.htm"
-        url = "https://www.btbtt16.com/thread-index-fid-981-tid-4508536.htm"
+        url = "https://www.btbtt16.com/thread-index-fid-981-tid-4739923.htm"
         self.url_analyzevideo(self.url_get(url))
         self.Downloadimage_examine(self.video_data)
 
@@ -82,6 +82,6 @@ if __name__ == "__main__":
     video_type = "日本"
     page = 5
     datapath = "E:\缓存\爬虫图片"
-    vpn = "192.168.31.50"
+    vpn = "192.168.31.160"
     w = btxiazai(video_query,video_type,page,vpn,datapath)
     w.run()
