@@ -6,9 +6,10 @@ import logging
 import logging.config
 
 class Webbug(object):
-    def __init__(self,video_query,video_type,page):
+    def __init__(self,video_query,video_type,page,vpn):
         self.url_data = []
         self.url_list = []
+        self.VPN = vpn
         self.video_data = {}
         self.video_query = video_query
         self.video_type = video_type
@@ -19,9 +20,10 @@ class Webbug(object):
         self.url_data_txt = os.path.join(self.download_path,'data.txt')
         self.url_data_csv = os.path.join(self.download_path,'data.csv')
         self.my_log = os.path.join(self.download_path,'log.txt')
-        self.preprocess()
+        self.preprocess(vpn)
+
     #运行前预处理
-    def preprocess(self):
+    def preprocess(self,VPN):
         if not os.path.exists(self.download_path):
             os.makedirs(self.download_path)
         else:
@@ -31,9 +33,10 @@ class Webbug(object):
             except FileNotFoundError:
                 print(f"删除失败,{self.my_log},{self.url_data_csv}文件不存在")
             print(">>>>>>>>>>>>>>>>>>下载路径已存在<<<<<<<<<<<<<<<<<")
-        logging.config.fileConfig('E:\工作\python\代码库\logging.conf',defaults={'logfile': self.debuglog_path})
-        socks.set_default_proxy(socks.SOCKS5, "192.168.31.205", 65533)
+        logging.config.fileConfig('F:\work\python\代码库\logconf\logging.conf',defaults={'logfile': self.debuglog_path})
+        socks.set_default_proxy(socks.SOCKS5, VPN, 65533)
         socket.socket = socks.socksocket
+
     #get爬取网页    
     def url_get(self,url): 
         logger = logging.getLogger("Url_get")
@@ -43,6 +46,7 @@ class Webbug(object):
         except requests.exceptions.RequestException as e: # 如果发生任何 requests 库中定义的异常，则执行以下代码块
             logger.error("%s \n访问报错,请检查url和代理是否正确",e)
             return "no_url_data"
+        
     # 保存分析数据
     def url_AnalyzeDatasave(self,path,Data):
         df = pd.DataFrame(Data)     
@@ -51,15 +55,18 @@ class Webbug(object):
             df.to_csv(path, index=False)
         else:
             df.to_csv(path, index=False, mode="a")
+
     # 文件保存
     def save_data(path,data): 
         with open(path, 'w', encoding='utf-8') as f:
             f.write(data)
+
     # 文件读取
     def read_data(path):
         with open(path, 'r', encoding='utf-8') as f:
             data = f.read()
         return data
+    
     # 下载
     def Download(self, download_url, download_name):
         logger = logging.getLogger("Download")
@@ -86,4 +93,24 @@ class Webbug(object):
             os.system(f"you-get -o {download_name[:-4]} -O {download_name[:-4]} {download_url}")# 使用you-get命令行工具下载文件
         except Exception as e:
             logger.error(f'下载错误{download_name}'+str(download_name).encode('gbk', errors='replace').decode('gbk')+': {e}')
+
+    # 下载图片前判断文件是否存在
+    def Downloadimage_examine(self, data):
+        logger = logging.getLogger("Downloadimage_examine")
+        for item in data:
+            image_url = (item['image_url'])
+            image_name = (item['image_name'])
+            if not os.path.isfile(image_name):
+                self.Download(image_url,image_name)
+            else:
+                logger.info('文件存在:'+str(image_name).encode('gbk', errors='replace').decode('gbk'))
+
+    # 下载视频前判断文件是否存在        
+    def Downloadvideo_examine(self, video_url, video_name):
+        logger = logging.getLogger("Downloadvideo_examine")
+        if self.url_analyzevideo(self.url_get(video_url),video_name) != "no_url_data":
+            self.Download(self.video_data["video_url"],video_name)
+        else:
+            logger.error(f"未下载{str(video_name).encode('gbk', errors='replace').decode('gbk')}视频数据")
+
 #-------------------------------------------------以下代码针对网页修改-------------------------------------------------------------

@@ -21,6 +21,7 @@ class Webbug(object):
         self.url_data_csv = os.path.join(self.download_path,'data.csv')
         self.my_log = os.path.join(self.download_path,'log.txt')
         self.preprocess(vpn)
+
     #运行前预处理
     def preprocess(self,VPN):
         if not os.path.exists(self.download_path):
@@ -35,6 +36,7 @@ class Webbug(object):
         logging.config.fileConfig('F:\work\python\代码库\logconf\logging.conf',defaults={'logfile': self.debuglog_path})
         socks.set_default_proxy(socks.SOCKS5, VPN, 65533)
         socket.socket = socks.socksocket
+
     #get爬取网页    
     def url_get(self,url): 
         logger = logging.getLogger("Url_get")
@@ -44,6 +46,7 @@ class Webbug(object):
         except requests.exceptions.RequestException as e: # 如果发生任何 requests 库中定义的异常，则执行以下代码块
             logger.error("%s \n访问报错,请检查url和代理是否正确",e)
             return "no_url_data"
+        
     # 保存分析数据
     def url_AnalyzeDatasave(self,path,Data):
         df = pd.DataFrame(Data)     
@@ -52,15 +55,18 @@ class Webbug(object):
             df.to_csv(path, index=False)
         else:
             df.to_csv(path, index=False, mode="a")
+
     # 文件保存
     def save_data(path,data): 
         with open(path, 'w', encoding='utf-8') as f:
             f.write(data)
+
     # 文件读取
     def read_data(path):
         with open(path, 'r', encoding='utf-8') as f:
             data = f.read()
         return data
+    
     # 下载
     def Download(self, download_url, download_name):
         logger = logging.getLogger("Download")
@@ -87,6 +93,25 @@ class Webbug(object):
             os.system(f"you-get -o {download_name[:-4]} -O {download_name[:-4]} {download_url}")# 使用you-get命令行工具下载文件
         except Exception as e:
             logger.error(f'下载错误{download_name}'+str(download_name).encode('gbk', errors='replace').decode('gbk')+': {e}')
+
+    # 下载图片前判断文件是否存在
+    def Downloadimage_examine(self, data):
+        logger = logging.getLogger("Downloadimage_examine")
+        for item in data:
+            image_url = (item['image_url'])
+            image_name = (item['image_name'])
+            if not os.path.isfile(image_name):
+                self.Download(image_url,image_name)
+            else:
+                logger.info('文件存在:'+str(image_name).encode('gbk', errors='replace').decode('gbk'))
+
+    # 下载视频前判断文件是否存在        
+    def Downloadvideo_examine(self, video_url, video_name):
+        logger = logging.getLogger("Downloadvideo_examine")
+        if self.url_analyzevideo(self.url_get(video_url),video_name) != "no_url_data":
+            self.Download(self.video_data["video_url"],video_name)
+        else:
+            logger.error(f"未下载{str(video_name).encode('gbk', errors='replace').decode('gbk')}视频数据")
 
 #-------------------------------------------------以下代码针对网页修改-------------------------------------------------------------
     # 分析url数据
@@ -116,6 +141,7 @@ class Webbug(object):
         else:
             self.url_AnalyzeDatasave(self.url_data_csv,self.url_data)
             logger.info("分析完成已保存数据")
+
     #分析url_video数据
     def url_analyzevideo(self, data, video_name): 
         logger = logging.getLogger("url_analyzevideo")
@@ -144,6 +170,7 @@ class Webbug(object):
             videodata = {"720": i.group("video_url") for i in jx3}
 
         video_url = videodata.get('1080', videodata.get('720', videodata.get('480', videodata.get('320', None))))
+
         # 判断视频是否加密
         if video_url is not None:
             if '.m3u8' in video_url:
@@ -158,23 +185,7 @@ class Webbug(object):
         else:
             logger.error(f"{videodata}没有解析到视频数据")
             return "no_url_data"
-    # 下载图片前判断文件是否存在
-    def Downloadimage_examine(self, data):
-        logger = logging.getLogger("Downloadimage_examine")
-        for item in data:
-            image_url = (item['image_url'])
-            image_name = (item['image_name'])
-            if not os.path.isfile(image_name):
-                self.Download(image_url,image_name)
-            else:
-                logger.info('文件存在:'+str(image_name).encode('gbk', errors='replace').decode('gbk'))
-    # 下载视频前判断文件是否存在        
-    def Downloadvideo_examine(self, video_url, video_name):
-        logger = logging.getLogger("Downloadvideo_examine")
-        if self.url_analyzevideo(self.url_get(video_url),video_name) != "no_url_data":
-            self.Download(self.video_data["video_url"],video_name)
-        else:
-            logger.error(f"未下载{str(video_name).encode('gbk', errors='replace').decode('gbk')}视频数据")
+        
     # 获取url_list
     def url_pages(self):
         start = timeit.default_timer()
@@ -187,6 +198,7 @@ class Webbug(object):
             self.url_list.append(url)
         end = timeit.default_timer()
         logger.info(f"运行时间: {int(end - start)} 秒")
+
     # 运行脚本
     def run(self,url):
         logger = logging.getLogger("run")
@@ -208,7 +220,8 @@ class Webbug(object):
                 logger.info('文件存在:'+str(video_name).encode('gbk', errors='replace').decode('gbk'))  
 
         end = timeit.default_timer()
-        logger.info(f"运行时间: {int(end - start)} 秒")   
+        logger.info(f"运行时间: {int(end - start)} 秒")  
+
     # 多页爬取直到爬取结束
     def pages_run(self):
         start = timeit.default_timer()
@@ -231,5 +244,3 @@ if __name__ == "__main__":
     w = Webbug(video_query,video_type,page,vpn)
     w.pages_run()
 
-#  ピンクパイナップル メリー・ジェーン Collaboration Works
-    # url = f"https://hanime1.me/search?query={self.video_query}&type=&genre={self.video_type}&page={page}"

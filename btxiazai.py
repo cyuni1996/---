@@ -216,5 +216,3 @@ if __name__ == "__main__":
     w = Webbug(video_query,video_type,page)
     w.test()
 
-# nur 鈴木みら乃 GOLD BEAR 魔人 PoRO Queen Bee ショーテン ピンクパイナップル メリー・ジェーン Collaboration Works
-    # url = f"https://hanime1.me/search?query={self.video_query}&type=&genre={self.video_type}&page={page}"

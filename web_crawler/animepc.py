@@ -1,14 +1,16 @@
 import os,re,time,timeit
 from crawler_code import Webbug as Webbug
+from concurrent.futures import ThreadPoolExecutor,as_completed
 
 class Animepc(Webbug):
     def __init__(self, video_query, video_type, page, vpn, datapath):
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67"}
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.60"}                 
         logconf_path = "logconf/logging.conf"
         super().__init__(video_query, video_type, page, headers, logconf_path, vpn, datapath)
         self.video_data = {}
         self.url_data = []
         self.url_list = []
+        self.Downloadlink = {}
 #-------------------------------------------------以下代码针对网页修改-------------------------------------------------------------
     # 分析url数据
     def url_analyze(self,Data): 
@@ -85,7 +87,13 @@ class Animepc(Webbug):
     # 下载视频前判断文件是否存在        
     def Downloadvideo_examine(self, video_url, video_name):
         if self.url_analyzevideo(self.url_get(video_url),video_name) != "no_url_data":
-            self.Download(self.video_data["video_url"],video_name)
+            # self.Download(self.video_data["video_url"],video_name)
+            Downloadlink = {
+                    "video_name":video_name,
+                    "video_url":self.video_data["video_url"]
+                }
+            self.Downloadlink.update(Downloadlink)
+            
         else:
             self.logger.error(f"未下载{str(video_name).encode('gbk', errors='replace').decode('gbk')}视频数据")
     # 获取url_list
@@ -130,7 +138,16 @@ class Animepc(Webbug):
             self.logger.info(f"{str(i).encode('gbk', errors='replace').decode('gbk')} 爬取完成")
         end = timeit.default_timer()
         self.logger.info(">>>>>>>>>>>>>>>>>>全部爬取完成<<<<<<<<<<<<<<<<<")
+
+        pool = ThreadPoolExecutor(max_workers = 3)
+        task_log = []
+        for i in self.Downloadlink:
+            task = pool.submit(Webbug.Download, i)
+            task_log.append(task)
+        for future in as_completed(task_log):
+            data = future.result()
         self.logger.info(f"总运行时间: {int(end - start)} 秒")
+
 
 if __name__ == "__main__":
     video_query = ""
