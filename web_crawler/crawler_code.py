@@ -1,4 +1,4 @@
-import os,socket,time,requests,socks,tqdm,re
+import os,socket,time,requests,socks,tqdm,re,sys
 from tqdm import tqdm
 import pandas as pd
 import logging
@@ -39,7 +39,6 @@ class Webbug(object):
     def __init__(self,video_query,video_type,page,headers,logconf_path,vpn,datapath):
         self.headers = headers
         self.logconf_path = logconf_path
-        print(self.logconf_path)
         self.vpn = vpn
         self.datapath = datapath
         self.video_query = video_query
@@ -56,17 +55,20 @@ class Webbug(object):
         if not os.path.exists(self.download_path):
             os.makedirs(self.download_path)
         else:
-            try:
+            if os.path.exists(self.debuglog_path):
                 os.remove(self.debuglog_path)
+                print('已清理log文件')
+            if os.path.exists(self.url_data_csv):
                 os.remove(self.url_data_csv)
-            except FileNotFoundError:
-                print(f"删除失败,{self.debuglog_path},{self.url_data_csv}文件不存在")
+                print('已清理csv文件')
+    
         #pre2:加载日志程序
-        if os.path.exists(self.logconf_path):
+        if os.path.exists(os.path.abspath(self.logconf_path)):
             logging.config.fileConfig(self.logconf_path,defaults={'logfile': self.debuglog_path})
             self.logger = logging.getLogger(__name__)
         else:
-            print("日志配置文件不存在:{}".format(os.path.abspath(self.logconf_path)))
+            print("error:日志配置文件不存在:{}".format(os.path.abspath(self.logconf_path)))
+            sys.exit()
             
         #pre3:设置代理
         if self.vpn:
