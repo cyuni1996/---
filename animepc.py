@@ -1,9 +1,12 @@
 import os,re,socket,time,requests,socks,timeit,tqdm,multiprocessing
-from lxml import etree, html
-from tqdm import tqdm
 import pandas as pd
 import logging
 import logging.config
+from lxml import etree, html
+from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor,as_completed
+
+
 
 class Webbug(object):
     def __init__(self,video_query,video_type,page,vpn):
