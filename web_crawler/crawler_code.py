@@ -4,41 +4,10 @@ import pandas as pd
 import logging
 import logging.config
 
-
-# 下载
-def Download(download):
-    download_url = download["video_url"]
-    download_name = download["video_name"]
-    myWebbug = Webbug()
-    try:
-        url = requests.get(download_url, headers=myWebbug.headers, stream=True, timeout=(10, 15)) # 使用stream参数，可以让你一边下载一边写入文件，这样可以节省内存空间，提高效率，避免因为文件过大而导致的内存溢出错误。
-        file_size = int(url.headers.get('content-length', 0))                                 # 获取文件大小
-        progress_bar = tqdm(total=file_size, unit='B', unit_scale=True, unit_divisor=1024, desc=download_name, miniters=1, bar_format="{l_bar}{bar:25}{r_bar}") # 创建进度条
-        file_path = os.path.join(download_name[:-4], download_name)                           # 拼接文件路径
-        with open(file_path, 'wb') as f:
-            for data in url.iter_content(chunk_size=1024):
-                size = f.write(data)
-                progress_bar.update(size)
-            progress_bar.close()                                                              # 关闭进度条
-    except Exception as e:
-        print(f'{e} \n开始尝试使用下载方法2')
-        Download2(download_url, download_name)
-    else:
-        print('下载成功:'+str(download_name).encode('gbk', errors='replace').decode('gbk'))
-    finally:                                                                                  # 语句结束后必须执行的操作
-        time.sleep(0.1)
-
-def Download2(download_url, download_name):
-    try:
-        os.system(f"you-get -o {download_name[:-4]} -O {download_name[:-4]} {download_url}")# 使用you-get命令行工具下载文件
-    except Exception as e:
-        print(f'下载错误{download_name}'+str(download_name).encode('gbk', errors='replace').decode('gbk')+': {e}')
-
-
 class Webbug(object):
-    def __init__(self,video_query,video_type,page,headers,logconf_path,vpn,datapath):
-        self.headers = headers
-        self.logconf_path = logconf_path
+    def __init__(self,video_query,video_type,page,vpn,datapath):
+        self.headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.60"}
+        self.logconf_path = "../logconf/logging.conf"
         self.vpn = vpn
         self.datapath = datapath
         self.video_query = video_query

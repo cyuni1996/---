@@ -4,7 +4,7 @@ from crawler_code import Webbug as Webbug
 class btxiazai(Webbug):
     def __init__(self, video_query, video_type, page ,vpn ,datapath):
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 Edg/112.0.1722.48"}
-        logconf_path = "logconf/logging.conf"
+        logconf_path = "../logconf/logging.conf"
         super().__init__(video_query, video_type, page, headers, logconf_path, vpn, datapath)
         self.video_data = []
         self.url_data = []

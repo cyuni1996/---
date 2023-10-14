@@ -1,20 +1,19 @@
-import os,re,time,requests,timeit
+import os,re,time,requests,timeit,sys
 from tqdm import tqdm
 from crawler_code import Webbug as Webbug
 from concurrent.futures import ThreadPoolExecutor,as_completed
 
 # 下载
-
 def Download(download):
-    if download["video_url"]:
+    if "video_url" in download:
         download_url = download["video_url"]
         download_name = download["video_name"]
-    elif download["image_url"]:
+    elif "image_url" in download:
         download_url = download["image_url"]
         download_name = download["image_name"]
     else:
-        print("没有下载数据")
-        
+        w.logger.debug("没有下载数据")
+        sys.exit()
 
     try:
         url = requests.get(download_url, headers=w.headers, stream=True, timeout=(10, 15)) # 使用stream参数，可以让你一边下载一边写入文件，这样可以节省内存空间，提高效率，避免因为文件过大而导致的内存溢出错误。
@@ -27,10 +26,10 @@ def Download(download):
                 progress_bar.update(size)
             progress_bar.close()                                                              # 关闭进度条
     except Exception as e:
-        print(f'{e} \n开始尝试使用下载方法2')
+        w.logger.info(f'{e} \n开始尝试使用下载方法2')
         Download2(download_url, download_name)
     else:
-        print('下载成功:'+str(download_name).encode('gbk', errors='replace').decode('gbk'))
+        w.logger.info('下载成功:'+str(download_name).encode('gbk', errors='replace').decode('gbk'))
     finally:                                                                                  # 语句结束后必须执行的操作
         time.sleep(0.1)
 
@@ -38,19 +37,28 @@ def Download2(download_url, download_name):
     try:
         os.system(f"you-get -o {download_name[:-4]} -O {download_name[:-4]} {download_url}")# 使用you-get命令行工具下载文件
     except Exception as e:
-        print(f'下载错误{download_name}'+str(download_name).encode('gbk', errors='replace').decode('gbk')+': {e}')
-
+        w.logger.error(f'下载错误{download_name}'+str(download_name).encode('gbk', errors='replace').decode('gbk')+': {e}')
 
 class Animepc(Webbug):
     def __init__(self, video_query, video_type, page, vpn, datapath):
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.60"}                 
-        logconf_path = "../logconf/logging.conf"
-        super().__init__(video_query, video_type, page, headers, logconf_path, vpn, datapath)
+        super().__init__(video_query, video_type, page, vpn, datapath)
         self.url_data = []
         self.url_list = []
         self.Downloadimagelink = []
         self.Downloadvideolink = []
 #-------------------------------------------------以下代码针对网页修改-------------------------------------------------------------
+    # 分析链接列出url_list
+    def url_page(self):
+        self.logger.info(f"分析链接列表")
+        for i in self.page:
+            if self.video_query:
+                url = f"https://hanime1.me/search?genre={self.video_type}&page={i}"
+            else:
+                url = f"https://hanime1.me/search?query={self.video_query}&type=&genre={self.video_type}&page={i}"
+            self.logger.info(str(url).encode('gbk', errors='replace').decode('gbk'))
+            self.url_list.append(url)
+        self.logger.info(f"列表分析完成")
+
     # 分析url数据
     def url_analyze(self,Data): 
         glgz = re.compile(
@@ -116,18 +124,6 @@ class Animepc(Webbug):
             self.logger.error(f"{videodata}没有解析到视频数据")
             return "no_url_data"
         
-    # 获取url_list
-    def url_page(self):
-        self.logger.info(f"分析链接列表")
-        for i in self.page:
-            if self.video_query:
-                url = f"https://hanime1.me/search?genre={self.video_type}&page={i}"
-            else:
-                url = f"https://hanime1.me/search?query={self.video_query}&type=&genre={self.video_type}&page={i}"
-            self.logger.info(str(url).encode('gbk', errors='replace').decode('gbk'))
-            self.url_list.append(url)
-        self.logger.info(f"列表分析完成")
-
     # 单页爬取流程
     def url_run(self,url):
         start = timeit.default_timer()
@@ -139,10 +135,8 @@ class Animepc(Webbug):
                 image_url = (item['image_url'])
                 image_name = (item['image_name'])
                 if not os.path.isfile(image_name):
-                    # self.Download(image_url,image_name)
-                    self.Downloadimagelink.append(item)
-                else:
-                    self.logger.info('图片文件存在:'+str(image_name).encode('gbk', errors='replace').decode('gbk'))
+                    self.Downloadimagelink.append({"image_url":image_url,"image_name":image_name})
+                    self.logger.info('未下载文件:'+str(image_name).encode('gbk', errors='replace').decode('gbk'))
 
             # 下载图片前判断视频是否存在
             self.logger.info(">>>>>>>>>>>>>>>>>>开始分析视频文件<<<<<<<<<<<<<<<<<")
@@ -151,15 +145,9 @@ class Animepc(Webbug):
                 video_name = (item['video_name'])
                 if not os.path.isfile(video_name):
                     if self.url_analyzevideo(self.url_get(video_url),video_name) != "no_url_data":
-                        self.logger.info(f'下载链接:{video_url},名称：{video_name}')
-                        # self.Download(self.Downloadvideolink["video_url"],video_name)
+                        self.logger.info('未下载文件:'+str(video_name).encode('gbk', errors='replace').decode('gbk'))
                     else:
                         self.logger.error(f"没有分析到{str(video_name).encode('gbk', errors='replace').decode('gbk')}视频数据")
-                else:
-                    self.logger.info('视频文件存在:'+str(video_name).encode('gbk', errors='replace').decode('gbk'))  
-
-        else:
-            self.logger.error(f"没有分析到{url}数据")
 
         end = timeit.default_timer()
         self.logger.info(f"运行时间: {int(end - start)} 秒")  
@@ -168,6 +156,7 @@ class Animepc(Webbug):
     def run(self):
         start = timeit.default_timer()
         self.url_page()
+
         for i in self.url_list:
             self.logger.info(f"{str(i).encode('gbk', errors='replace').decode('gbk')} 爬取开始")
             self.url_data.clear()
@@ -175,34 +164,37 @@ class Animepc(Webbug):
             self.logger.info(f"{str(i).encode('gbk', errors='replace').decode('gbk')} 爬取完成")
         
         # 下载
-        task_log = []
-        pool = ThreadPoolExecutor(max_workers = 7)
-        self.logger.info(">>>>>>>>>>>>>>>>>>开始下载图片<<<<<<<<<<<<<<<<<")
-        for cmd in self.Downloadimagelink:
-            task = pool.submit(Download, cmd)
-            task_log.append(task)
-        for future in as_completed(task_log):
-            data = future.result()
-        self.logger.info(">>>>>>>>>>>>>>>>>>开始下载视频<<<<<<<<<<<<<<<<<")
-        for cmd in self.Downloadvideolink:
-            task = pool.submit(Download, cmd)
-            task_log.append(task)
-        for future in as_completed(task_log):
-            data = future.result()
+        if self.Downloadimagelink or self.Downloadvideolink:
+            task_log = []
+            pool = ThreadPoolExecutor(max_workers = 5)
+            if self.Downloadimagelink:
+                self.logger.info(">>>>>>>>>>>>>>>>>>开始下载图片<<<<<<<<<<<<<<<<<")
+                for cmd in self.Downloadimagelink:
+                    task = pool.submit(Download, cmd)
+                    task_log.append(task)
+                for future in as_completed(task_log):
+                    future.result()
+            if self.Downloadvideolink:
+                self.logger.info(">>>>>>>>>>>>>>>>>>开始下载视频<<<<<<<<<<<<<<<<<")
+                for cmd in self.Downloadvideolink:
+                    task = pool.submit(Download, cmd)
+                    task_log.append(task)
+                    
+                for future in as_completed(task_log):
+                    future.result()
+                    
+            self.logger.info(">>>>>>>>>>>>>>>>>>全部爬取完成<<<<<<<<<<<<<<<<<")
+        else:
+            self.logger.debug("没有可下载的数据")
 
         end = timeit.default_timer()
-        self.logger.info(">>>>>>>>>>>>>>>>>>全部爬取完成<<<<<<<<<<<<<<<<<")
         self.logger.info(f"总运行时间: {int(end - start)} 秒")
 
-
 if __name__ == "__main__":
-    video_query = ""
-    video_type = "裏番"
-    page = 1
-    datapath = "E:\缓存\爬虫图片"
-    vpn = "192.168.31.160"
-    w = Animepc(video_query,video_type,page,vpn,datapath)
+    # video_query = ""
+    # video_type = "裏番"
+    # page = 5
+    # vpn = "192.168.31.160"
+    # w = Webbug(video_query,video_type,page,vpn)
+    w = Animepc(sys.argv[1],sys.argv[2],int(sys.argv[3]),sys.argv[5],sys.argv[4])
     w.run()
-
-# f"https://hanime1.me/search?genre={self.video_type}&page={page}"
-# url = f"https://hanime1.me/search?query={self.video_query}&type=&genre={self.video_type}&page={page}"

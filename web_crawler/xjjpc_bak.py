@@ -1,4 +1,4 @@
-import json,multiprocessing,os,re,socket,time,requests,socks,timeit,tqdm,threading
+import multiprocessing,os,re,socket,time,requests,socks,timeit,tqdm
 from lxml import etree, html
 from tqdm import tqdm
 import pandas as pd
@@ -45,17 +45,42 @@ def url_Datasave(Data):
     else:
         df.to_csv(url_data_csv, index=False, mode="a")
     
-def Download(download_url,download_name): # 下载
-    url=requests.get(download_url,headers=headers,timeout=(10,15))
-    time.sleep(0.1)
+# def Download(download_url,download_name): # 下载
+#     url=requests.get(download_url,headers=headers,timeout=(10,15))
+#     time.sleep(0.1)
+#     try:
+#         progress_bar = tqdm(total=int(url.headers.get('content-length', 0)), unit_scale=True ,desc=download_name, miniters=1, bar_format="{l_bar}{bar:25}{r_bar}")
+#         with open(download_name, "wb") as f:
+#             for data in url.iter_content(chunk_size=1024):
+#                 sizi=f.write(data)
+#                 progress_bar.update(sizi)     
+#     except requests.exceptions.RequestException as e:
+#         logging.error('下载错误'+download_name,e)   
+
+def Download(download_url, download_name):
     try:
-        progress_bar = tqdm(total=int(url.headers.get('content-length', 0)), unit_scale=True ,desc=download_name, miniters=1, bar_format="{l_bar}{bar:25}{r_bar}")
-        with open(download_name, "wb") as f:
+        url = requests.get(download_url, headers=headers, stream=True, timeout=(10, 15)) # 使用stream参数，可以让你一边下载一边写入文件，这样可以节省内存空间，提高效率，避免因为文件过大而导致的内存溢出错误。
+        file_size = int(url.headers.get('content-length', 0))                                 # 获取文件大小
+        progress_bar = tqdm(total=file_size, unit='B', unit_scale=True, unit_divisor=1024, desc=download_name, miniters=1, bar_format="{l_bar}{bar:25}{r_bar}") # 创建进度条
+        file_path = os.path.join(download_name[:-4], download_name)                           # 拼接文件路径
+        with open(file_path, 'wb') as f:
             for data in url.iter_content(chunk_size=1024):
-                sizi=f.write(data)
-                progress_bar.update(sizi)     
-    except requests.exceptions.RequestException as e:
-        logging.error('下载错误'+download_name,e)   
+                size = f.write(data)
+                progress_bar.update(size)
+            progress_bar.close()                                                              # 关闭进度条
+    except Exception as e:
+        logger.warning(f'{e} \n开始尝试使用下载方法2')
+        Download2(download_url, download_name)
+    else:
+        logger.info('下载成功:'+str(download_name).encode('gbk', errors='replace').decode('gbk'))
+    finally:                                                                                  # 语句结束后必须执行的操作
+        time.sleep(0.1)    
+def Download2(download_url, download_name):
+    try:
+        os.system(f"you-get -o {download_name[:-4]} -O {download_name[:-4]} {download_url}")# 使用you-get命令行工具下载文件
+    except Exception as e:
+        logger.error(f'下载错误{download_name}'+str(download_name).encode('gbk', errors='replace').decode('gbk')+': {e}')
+
 
 def Download_examine(url_Data):
     for item in url_Data:
@@ -85,22 +110,41 @@ def url_pages(pages):
 def run(number):
     if not os.path.exists(download_path):
         os.makedirs(download_path)
+    if os.path.isfile(url_data_csv):
+        os.remove(url_data_csv)
     else:
-        try:
-            os.remove(url_data_csv)
-        except:
-            print("scv删除失败,文件不存在")
-        print(">>>>>>>>>>>>>>>>>>下载路径存在<<<<<<<<<<<<<<<<<")
+        print(f"无需清理,{url_data_csv}文件不存在")
+        
     Pool = multiprocessing.Pool(number)
     Pool.map(url_pages,pages)
     Pool.close()
     Pool.join()
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 shousuo = "初川みなみ"
 pages = re.findall(r'\d+',str(list(range(1,20))))
 url_Data = []
 video_Downloadinfo = []
-logconf_path = "logconf/logging.conf"
+logconf_path = "../logconf/logging.conf"
 headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.0.0"} 
 download_path = f'E:\缓存\爬虫图片\{shousuo}'
 url_data_csv = os.path.join(download_path,"Data" + '.csv')
@@ -109,16 +153,9 @@ video_txt_info = None
 socks.set_default_proxy(socks.SOCKS5, "192.168.31.160", 65533)
 socket.socket = socks.socksocket    
 logger = logging.getLogger(__name__)
+
 if  __name__=="__main__":
     start = timeit.default_timer()
-    if not os.path.exists(download_path):
-        os.makedirs(download_path)
-    else:
-        try:
-            os.remove(debuglog_path)
-            os.remove(url_data_csv)
-        except FileNotFoundError:
-            print(f"删除失败,{debuglog_path},{url_data_csv}文件不存在")
     logging.config.fileConfig(logconf_path,defaults={'logfile': debuglog_path})
     run(10)
     end = timeit.default_timer()
