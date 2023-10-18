@@ -21,9 +21,11 @@ def url_analyze(Data): #分析url数据
         ,re.S)  
     jx = glgz.finditer(Data)  
     for i in jx:                                        
-        filename = os.path.splitext(i.group("name").strip(""))[0].replace("/", "").replace("]", "")
+        filename = i.group("name").strip()  # 从 i 中提取文件名，去掉空格
+        filename = re.sub(r"[^\w\-_\. ]", "", filename)     # 用正则表达式替换掉文件名中的特殊字符
+        logger.debug(filename)
         dic={
-            "name":i.group("name"),
+            "name":filename,
             "image_url":i.group("image"),
             "torrent_url":i.group("torrent"),
             "image_name":os.path.join(download_path, filename + '.jpg'),
@@ -31,7 +33,6 @@ def url_analyze(Data): #分析url数据
         }
         url_Data.append(dic)
     if url_Data == []:
-        logging.error("没有分析到url数据")
         return "no_url_data"
     else:
         url_Datasave(url_Data)
@@ -45,18 +46,6 @@ def url_Datasave(Data):
     else:
         df.to_csv(url_data_csv, index=False, mode="a")
     
-# def Download(download_url,download_name): # 下载
-#     url=requests.get(download_url,headers=headers,timeout=(10,15))
-#     time.sleep(0.1)
-#     try:
-#         progress_bar = tqdm(total=int(url.headers.get('content-length', 0)), unit_scale=True ,desc=download_name, miniters=1, bar_format="{l_bar}{bar:25}{r_bar}")
-#         with open(download_name, "wb") as f:
-#             for data in url.iter_content(chunk_size=1024):
-#                 sizi=f.write(data)
-#                 progress_bar.update(sizi)     
-#     except requests.exceptions.RequestException as e:
-#         logging.error('下载错误'+download_name,e)   
-
 def Download(download_url, download_name):
     try:
         url = requests.get(download_url, headers=headers, stream=True, timeout=(10, 15)) # 使用stream参数，可以让你一边下载一边写入文件，这样可以节省内存空间，提高效率，避免因为文件过大而导致的内存溢出错误。
@@ -97,7 +86,7 @@ def Download_examine(url_Data):
             Download(torrent_url,torrent_name)
         else:
             tqdm.write(f"文件存在:{torrent_name}")
-        
+
 def url_pages(pages):
     url = "https://ffjav.com/page/%s?s=%s"%(pages,shousuo)
     if url_analyze(url_get(url)) != "no_url_data":
@@ -140,7 +129,7 @@ def run(number):
 
 
 
-shousuo = "初川みなみ"
+shousuo = "桃乃木かな"
 pages = re.findall(r'\d+',str(list(range(1,20))))
 url_Data = []
 video_Downloadinfo = []
@@ -150,12 +139,15 @@ download_path = f'E:\缓存\爬虫图片\{shousuo}'
 url_data_csv = os.path.join(download_path,"Data" + '.csv')
 debuglog_path = os.path.join(download_path,'log.txt')
 video_txt_info = None
-socks.set_default_proxy(socks.SOCKS5, "192.168.31.160", 65533)
+socks.set_default_proxy(socks.SOCKS5, "192.168.31.248", 65533)
 socket.socket = socks.socksocket    
 logger = logging.getLogger(__name__)
 
 if  __name__=="__main__":
     start = timeit.default_timer()
+
+    if not os.path.isfile(debuglog_path):  
+        os.makedirs(download_path) 
     logging.config.fileConfig(logconf_path,defaults={'logfile': debuglog_path})
     run(10)
     end = timeit.default_timer()

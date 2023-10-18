@@ -4,8 +4,8 @@ chcp 65001
 set PYfile=F:\work\python\代码库\web_crawler\animepc.py
 set PY=python
 
-set sousuo=""
-set leixing="裏番"
+set sousuo="S1 NO.1 STYLE"
+set leixing="3D動畫"
 set yeshu=1
 set xiazai="E:\缓存\爬虫图片"
 set vpn="192.168.31.160"
